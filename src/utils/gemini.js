@@ -566,14 +566,14 @@ And when it comes, you will know why the others were wrong.`,
 
 ${today()}
 
-The door you keep looking at
-will open.
+Good news — things are shifting your way.
+That one thing you have been hoping for?
+It is closer than it looks.
 
-Not when you are ready.
-When it is time.
-And the two will be the same moment.
+You have already done the hard part.
+Now let it come to you.
 
-Lucky direction: toward the thing you keep thinking about`,
+Lucky reminder: you are not as far as you think. 😊`,
     },
     {
       tone: 'warm', from: 'Fortune', to: 'You',
@@ -581,14 +581,14 @@ Lucky direction: toward the thing you keep thinking about`,
 
 ${today()}
 
-Something is turning in your favor.
-You cannot see it yet.
-That is not evidence it is not happening.
+Something good is on its way to you.
+Not maybe. Not possibly. Yes.
 
-The luckiest thing about you
-is that you did not stop.
+The fact that you are still trying
+means fortune already chose your side.
 
-Lucky word: continue`,
+Rest easy tonight.
+Tomorrow has a surprise with your name on it. 🌟`,
     },
     {
       tone: 'warm', from: 'Fortune', to: 'You',
@@ -596,15 +596,44 @@ Lucky word: continue`,
 
 ${today()}
 
-A surprise is already in motion.
-You ordered it a long time ago
-and forgot.
+Here is a truth most people miss —
+the moment you almost gave up
+is usually just before the good part.
 
-Receive it without suspicion.
-You deserve good things
-that arrive without explanation.
+You are right there.
+Keep going.
 
-Lucky number: the next step`,
+Lucky sign: the fact that you opened this. ✨`,
+    },
+    {
+      tone: 'warm', from: 'Fortune', to: 'You',
+      content: () => `✦  YOUR FORTUNE  ✦
+
+${today()}
+
+Today, something small will go right.
+Hold onto that feeling.
+
+Small wins are the universe saying:
+"I see you. I have not forgotten you."
+
+You are someone good things happen to.
+Just not always on your schedule. 🍀`,
+    },
+    {
+      tone: 'warm', from: 'Fortune', to: 'You',
+      content: () => `✦  YOUR FORTUNE  ✦
+
+${today()}
+
+Stop worrying for exactly five minutes.
+That is your fortune.
+
+In those five minutes you will notice
+the sun is out, you are breathing,
+and the worst has not happened yet.
+
+Lucky truth: most of what you fear never arrives. 💛`,
     },
   ],
 
