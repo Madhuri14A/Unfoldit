@@ -19,6 +19,7 @@ ARTIFACT TYPES — read the intent carefully, not just keywords:
 
 EMOTIONAL ROUTING — this is the most important part:
 - "he cheated on me" / "she betrayed me" / "they lied" / "I trusted them" → apology_letter (from the person who hurt them — make them say what they would never actually say)
+- "I hate my parents" / family conflict / feeling unseen at home → future_self (calm, grounding, safe next step)
 - "I deserve better" / "why don't they love me" / "I feel invisible" → handwritten_note (warm, someone who sees them fully)
 - "I don't know what to do" / "I'm scared" / "what if it all falls apart" → future_self
 - "I hate this job" / "I feel trapped" / "they don't value me at work" → resignation_letter
@@ -92,8 +93,8 @@ That kind of mind is rare, and we have been looking for it.
 Welcome home.
 
 Warmly,
-Priya Sharma
-Chief People Officer`,
+HR`,
+
     },
     {
       tone: 'formal', from: 'Your dream company', to: 'You',
@@ -103,8 +104,8 @@ ${today()}
 
 Dear ___,
 
-After three rounds of interviews and a lot of internal conversation,
-the answer is yes.
+Great news — this role is yours.
+The answer is yes.
 
 Role: Lead Creative
 Salary: Rs. 22,00,000 + equity
@@ -735,6 +736,9 @@ const VALID_TYPES = Object.keys(LOCAL_VARIANTS);
 function fallbackArtifactType(text) {
   const t = text.toLowerCase();
 
+  if (/\b(mom|mother|dad|father|parents|family|at home)\b/.test(t)
+    && /\b(hate|angry|anger|fight|fighting|toxic|hurt|control|controlling|strict|suffocating|resent|resentment)\b/.test(t)) return 'future_self';
+
   if (/manifest|law of attraction|attract|scripting|369|vision board|calling in|universe please|i am calling|i want to attract|affirmation|high vibration|vibration|affirm|i am magnetic|align|already mine|it's coming|its coming|billionaire|millionaire|millions|billions|i will be wealthy|i want to be rich|financial freedom|manifest money|attract money|attract wealth/.test(t)) return 'manifestation';
 
   if (/lottery|jackpot|lucky number|fortune cookie|destiny|fate|will i win|miracle coming|sign from universe|lucky charm|lucky|cosmic sign/.test(t)) return 'fortune_ticket';
@@ -743,7 +747,7 @@ function fallbackArtifactType(text) {
 
   if (/cheat|cheated|cheating|betray|lied to me|he lied|she lied|ghosted|used me|two.tim|two tim|affair|behind my back|was lying/.test(t)) return 'apology_letter';
 
-  if (/\b(angry|anger|betrayal|revenge|unfair|hate|resentment|hurt me|used me|lied|disrespected)\b/.test(t)) return 'apology_letter';
+  if (/\b(angry|anger|betrayal|revenge|unfair|resentment|hurt me|used me|lied|disrespected)\b/.test(t)) return 'apology_letter';
 
   if (/\b(trapped|toxic|quit|resign|stuck|powerless|escape|suffocating|burnout|hate (my |this )job|can't take|hostile)\b/.test(t)) return 'resignation_letter';
 
@@ -764,25 +768,44 @@ function fallbackArtifactType(text) {
   return 'future_self';
 }
 
-export async function classifyWish(wish, clarification = null, name = '', detail = '') {
+export async function classifyWish(wish, clarification = null, name = '', detail = '', role = '') {
   const cleanWish = String(wish || '').trim();
   const cleanName = String(name || '').trim();
   const cleanDetail = String(detail || '').trim();
+  const cleanRole = String(role || '').trim();
+  const applyName = (text) => {
+    const base = String(text || '');
+    return cleanName ? base.replace(/\[Name\]|\bSomeone\b|___/g, cleanName) : base;
+  };
+  const applyRole = (text) => {
+    const base = String(text || '');
+    if (!cleanRole) return base;
+    return base
+      .replace(/Position:\s*[^\n]+/i, `Position: ${cleanRole}`)
+      .replace(/Role:\s*[^\n]+/i, `Role: ${cleanRole}`);
+  };
+  const applyDetail = (text) => {
+    const base = String(text || '');
+    return cleanDetail
+      ? base.replace(/your dream company|Meridian Labs|Luminary Group|Northbridge Capital|the company/gi, cleanDetail)
+      : base;
+  };
+  const personalize = (text) => applyDetail(applyRole(applyName(text)));
   const localType = fallbackArtifactType(cleanWish);
   const variants = LOCAL_VARIANTS[localType];
   const chosen = pick(variants, cleanWish);
 
-  let localContent = chosen.content();
-  if (cleanName) localContent = localContent.replace(/\[Name\]|\bSomeone\b/g, cleanName);
-  if (cleanDetail) localContent = localContent.replace(/your dream company|Meridian Labs|Luminary Group|Northbridge Capital|the company/gi, cleanDetail);
+  let localContent = personalize(chosen.content());
   localContent = compressContent(localContent);
+  const localFrom = personalize(chosen.from);
+  const localTo = applyName(chosen.to);
 
   const localResult = {
     type: 'artifact',
     artifactType: localType,
     tone: chosen.tone,
-    from: chosen.from,
-    to: chosen.to,
+    from: localFrom,
+    to: localTo,
     content: localContent,
     source: 'local',
   };
@@ -795,6 +818,7 @@ export async function classifyWish(wish, clarification = null, name = '', detail
     clarification ? `They added: ${clarification}` : '',
     cleanName ? `User's name: ${cleanName}` : '',
     cleanDetail ? `Key detail (use this — company/person/place): ${cleanDetail}` : '',
+    cleanRole ? `Desired role (for offer letters): ${cleanRole}` : '',
   ].filter(Boolean).join('\n');
 
   try {
@@ -817,13 +841,16 @@ export async function classifyWish(wish, clarification = null, name = '', detail
     }
 
     const artifactType = VALID_TYPES.includes(parsed.artifactType) ? parsed.artifactType : localType;
+    const aiContent = compressContent(personalize(parsed.content || localResult.content));
+    const aiFrom = personalize(parsed.from || localResult.from);
+    const aiTo = applyName(parsed.to || localResult.to);
     return {
       type: 'artifact',
       artifactType,
-      content: compressContent(parsed.content || localResult.content),
+      content: aiContent,
       tone: parsed.tone || chosen.tone,
-      from: parsed.from || chosen.from,
-      to: parsed.to || chosen.to,
+      from: aiFrom,
+      to: aiTo,
       source: 'ai',
     };
   } catch {

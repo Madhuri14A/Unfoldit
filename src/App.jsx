@@ -263,17 +263,21 @@ const paperAccentMap={
   fortune_ticket:      T.gold,
 };
 
-const OfferLetterContent=({content,accent,done,lines,visible})=>{
+const OfferLetterContent=({content,accent,from,done,lines,visible})=>{
   let parsed={};
   try{ parsed=JSON.parse(content); }catch{ parsed.body=content; }
 
   const{company='',role='',salary='',startDate='',body='',signatory=''}=parsed;
+  const rawText=body||content||'';
+  const inferredRole=(rawText.match(/(?:Position|Role):\s*([^\n]+)/i)?.[1]||'').trim();
+  const inferredSalary=(rawText.match(/(?:Compensation|Salary):\s*([^\n]+)/i)?.[1]||'').trim();
+  const inferredStart=(rawText.match(/(?:Start Date|Start):\s*([^\n]+)/i)?.[1]||'').trim();
 
   return(
     <div style={{fontFamily:"'Lato',sans-serif",fontSize:13,color:T.inkMid,lineHeight:2}}>
       <div style={{borderBottom:`2px solid ${accent}`,paddingBottom:14,marginBottom:20}}>
         <div style={{fontFamily:"'Cormorant Garamond',serif",fontSize:22,fontWeight:300,color:T.ink,letterSpacing:'0.04em'}}>
-          {company||'Studio Orion'}
+          {company||from||'Studio Orion'}
         </div>
         <div style={{fontSize:10,letterSpacing:'0.22em',color:T.inkLight,textTransform:'uppercase',marginTop:4}}>
           Offer of Employment
@@ -281,9 +285,9 @@ const OfferLetterContent=({content,accent,done,lines,visible})=>{
       </div>
 
       {[
-        ['Position',role||'Senior Designer'],
-        ['Salary',salary||'₹24,00,000 per annum'],
-        ['Start Date',startDate||'Upon acceptance'],
+        ['Position',role||inferredRole||'Senior Designer'],
+        ['Salary',salary||inferredSalary||'₹24,00,000 per annum'],
+        ['Start Date',startDate||inferredStart||'Upon acceptance'],
       ].map(([k,v],i)=>(
         <motion.div key={k}
           initial={{opacity:0,x:-8}}
@@ -322,6 +326,7 @@ const ArtifactPhase=({artifactType,content,tone,from,onReset,burnable})=>{
   const[burnDone,setBurnDone]=useState(false);
   const[paperHidden,setPaperHidden]=useState(false);
   const[showFeeling,setShowFeeling]=useState(false);
+  const[showOfferConfetti,setShowOfferConfetti]=useState(false);
   const containerRef=useRef(null);
 
   const isOffer   =artifactType==='offer_letter';
@@ -343,6 +348,17 @@ const ArtifactPhase=({artifactType,content,tone,from,onReset,burnable})=>{
   const contentSize =(isBank?13:isFortune?18:isFormal?14:19)-(isMobile?2:0);
   const contentStyle=!isFormal&&!isBank&&!isFortune?'italic':'normal';
   const lineH       =isBank?2.1:isFortune?2.2:1.95;
+  const confettiColors=[T.gold,T.roseMid,T.sageMid,T.goldLight,T.rose,T.sage];
+
+  useEffect(()=>{
+    if(!isOffer){
+      setShowOfferConfetti(false);
+      return;
+    }
+    const showTimer=setTimeout(()=>setShowOfferConfetti(true),600);
+    const hideTimer=setTimeout(()=>setShowOfferConfetti(false),5600);
+    return()=>{clearTimeout(showTimer);clearTimeout(hideTimer);};
+  },[isOffer,artifactType]);
 
   if(isFortune){
     return(
@@ -494,7 +510,7 @@ const ArtifactPhase=({artifactType,content,tone,from,onReset,burnable})=>{
             </div>
 
             {isOffer
-              ? <OfferLetterContent content={content} accent={accent} done={done} lines={lines} visible={visible}/>
+              ? <OfferLetterContent content={content} accent={accent} from={from} done={done} lines={lines} visible={visible}/>
               : (
                 <div style={{fontFamily:contentFont,fontSize:contentSize,fontStyle:contentStyle,
                   color:T.ink,lineHeight:lineH,letterSpacing:'0.01em'}}>
@@ -541,6 +557,42 @@ const ArtifactPhase=({artifactType,content,tone,from,onReset,burnable})=>{
             onBurnTop={()=>{setPaperHidden(true);setShowFeeling(true);}}
             onComplete={()=>{setBurnDone(true);setShowFeeling(false);onReset();}}
           />
+        )}
+
+        {isOffer&&showOfferConfetti&&!burning&&(
+          <div style={{position:'absolute',inset:0,pointerEvents:'none',overflow:'hidden',zIndex:26}}>
+            <motion.div
+              initial={{opacity:0,scale:0.7}}
+              animate={{opacity:[0,0.45,0],scale:[0.7,1.8,2.8]}}
+              transition={{duration:1.4,ease:'easeOut'}}
+              style={{position:'absolute',left:'50%',top:'44%',width:86,height:86,marginLeft:-43,marginTop:-43,
+                borderRadius:'50%',background:'radial-gradient(circle,rgba(255,232,160,0.82),rgba(255,232,160,0))'}}
+            />
+            {Array.from({length:isMobile?52:76}).map((_,i)=>(
+              <motion.span
+                key={i}
+                initial={{opacity:0,y:-20,x:0,rotate:0,scale:0.9}}
+                animate={{
+                  opacity:[0,1,1,0],
+                  y:[-20,250+(i%12)*22],
+                  x:[0,((i%2)?1:-1)*(28+(i%8)*12)],
+                  rotate:[0,200+(i%7)*85],
+                  scale:[0.9,1.08,1],
+                }}
+                transition={{duration:3.8+(i%6)*0.22,delay:(i%16)*0.04,ease:'easeOut'}}
+                style={{
+                  position:'absolute',
+                  left:`${(i*13)%100}%`,
+                  top:-8,
+                  width:i%3===0?10:7,
+                  height:i%3===0?12:8,
+                  borderRadius:i%2?2:'50%',
+                  background:confettiColors[i%confettiColors.length],
+                  boxShadow:'0 0 10px rgba(255,255,255,0.32)',
+                }}
+              />
+            ))}
+          </div>
         )}
       </div>
 
@@ -639,10 +691,11 @@ const InputPhase=({onSubmit,onFortune})=>{
   const[focused,setFocused]=useState(false);
   const[expanded,setExpanded]=useState(false);
   const[yourName,setYourName]=useState('');
+  const[role,setRole]=useState('');
   const[detail,setDetail]=useState('');
   const ref=useRef(null);
   useEffect(()=>{setTimeout(()=>ref.current?.focus(),600);},[]);
-  const handleSubmit=()=>{if(value.trim().length<3)return;onSubmit(value.trim(),yourName.trim(),detail.trim());};
+  const handleSubmit=()=>{if(value.trim().length<3)return;onSubmit(value.trim(),yourName.trim(),role.trim(),detail.trim());};
   const fieldStyle={width:'100%',background:'rgba(255,255,255,0.5)',border:`1px solid ${T.pearlDeep}`,
     borderRadius:10,padding:'9px 14px',fontFamily:"'Cormorant Garamond',serif",fontSize:15,color:T.ink,caretColor:T.rose};
   return(
@@ -700,8 +753,9 @@ const InputPhase=({onSubmit,onFortune})=>{
                   make it personal (optional)
                 </p>
                 <input value={yourName} onChange={e=>setYourName(e.target.value)} placeholder="your name" style={fieldStyle}/>
+                <input value={role} onChange={e=>setRole(e.target.value)} placeholder="role (for offer letter)" style={fieldStyle}/>
                 <input value={detail} onChange={e=>setDetail(e.target.value)}
-                  placeholder="their name · company · a place — whatever fits" style={fieldStyle}/>
+                  placeholder="company · their name · a place — whatever fits" style={fieldStyle}/>
               </div>
             </motion.div>
           )}
@@ -841,7 +895,7 @@ export default function App(){
   const isMobile=useIsMobile(768);
   const[phase,setPhase]=useState('input');
   const[feeling,setFeeling]=useState('');
-  const[person,setPerson]=useState({name:'',detail:''});
+  const[person,setPerson]=useState({name:'',role:'',detail:''});
   const[question,setQuestion]=useState('');
   const[artifact,setArtifact]=useState(null);
 
@@ -849,20 +903,20 @@ export default function App(){
     if(phase!=='reading')return;
     (async()=>{
       try{
-        const res=await classifyWish(feeling,null,person.name,person.detail);
+        const res=await classifyWish(feeling,null,person.name,person.detail,person.role);
         if(res.type==='question'){setQuestion(res.question);setPhase('question');}
         else{setArtifact(res);setPhase('artifact');}
       }catch(e){console.error(e);setPhase('input');}
     })();
   },[phase]); // eslint-disable-line
 
-  const handleSubmit=(text,name,detail)=>{
-    setFeeling(text);setPerson({name,detail});setPhase('ritual');
+  const handleSubmit=(text,name,role,detail)=>{
+    setFeeling(text);setPerson({name,role,detail});setPhase('ritual');
   };
   const handleAnswer=async(ans)=>{
     setPhase('reading');
     try{
-      const res=await classifyWish(feeling,ans,person.name,person.detail);
+      const res=await classifyWish(feeling,ans,person.name,person.detail,person.role);
       if(res.type==='artifact'){setArtifact(res);setPhase('artifact');}
       else setPhase('input');
     }catch{setPhase('input');}
@@ -873,7 +927,7 @@ export default function App(){
       tone:'gentle',from:'The Universe',to:'You'});
     setPhase('artifact');
   };
-  const handleReset=()=>{setPhase('input');setFeeling('');setPerson({name:'',detail:''});setQuestion('');setArtifact(null);};
+  const handleReset=()=>{setPhase('input');setFeeling('');setPerson({name:'',role:'',detail:''});setQuestion('');setArtifact(null);};
 
   const burnable=artifact&&/\bhate\b|angry|rage|burn|betrayed|toxic|revenge|i want to destroy|despise/i.test(feeling);
 
