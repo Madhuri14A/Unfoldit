@@ -573,7 +573,7 @@ It is closer than it looks.
 You have already done the hard part.
 Now let it come to you.
 
-Lucky reminder: you are not as far as you think. 😊`,
+Lucky reminder: you are not as far as you think.`,
     },
     {
       tone: 'warm', from: 'Fortune', to: 'You',
@@ -588,7 +588,7 @@ The fact that you are still trying
 means fortune already chose your side.
 
 Rest easy tonight.
-Tomorrow has a surprise with your name on it. 🌟`,
+Tomorrow has a surprise with your name on it.`,
     },
     {
       tone: 'warm', from: 'Fortune', to: 'You',
@@ -603,7 +603,7 @@ is usually just before the good part.
 You are right there.
 Keep going.
 
-Lucky sign: the fact that you opened this. ✨`,
+Lucky sign: the fact that you opened this.`,
     },
     {
       tone: 'warm', from: 'Fortune', to: 'You',
@@ -618,7 +618,7 @@ Small wins are the universe saying:
 "I see you. I have not forgotten you."
 
 You are someone good things happen to.
-Just not always on your schedule. 🍀`,
+Just not always on your schedule.`,
     },
     {
       tone: 'warm', from: 'Fortune', to: 'You',
@@ -633,7 +633,7 @@ In those five minutes you will notice
 the sun is out, you are breathing,
 and the worst has not happened yet.
 
-Lucky truth: most of what you fear never arrives. 💛`,
+Lucky truth: most of what you fear never arrives.`,
     },
   ],
 
